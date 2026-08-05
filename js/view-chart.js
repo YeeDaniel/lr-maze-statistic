@@ -1,5 +1,5 @@
 import { PROG, STAGE, FRONT } from './config.js';
-import { deviation, cumulative } from './stats.js';
+import { deviation, cumulative, meanBasis } from './stats.js';
 import { label } from './decode.js';
 
 const HUE = ['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#4a3aa7','#e34948'];
@@ -45,8 +45,10 @@ const bands = { id: 'bands', beforeDatasetsDraw(ch) {
 }};
 
 const zero = { id: 'zero', beforeDatasetsDraw(ch) {
-  if (!lastState || lastState.mode === 'raw') return;
-  const y = ch.scales.y.getPixelForValue(0), a = ch.chartArea;
+  if (!lastState || lastState.mode === 'raw') return; // raw 模式本來就不畫零線，這是功能邏輯
+  const yScale = ch.scales.y;
+  if (!yScale) return; // 跟 bands 同一種防呆：datasets 是空的時候 Chart.js 不會建 y 軸 scale
+  const y = yScale.getPixelForValue(0), a = ch.chartArea;
   ch.ctx.save();
   ch.ctx.strokeStyle = css('--line2');
   ch.ctx.lineWidth = 1;
@@ -58,6 +60,7 @@ const zero = { id: 'zero', beforeDatasetsDraw(ch) {
 }};
 
 const fmt = v => Math.round(v).toLocaleString('en-US');
+const signed = v => (v > 0 ? '+' : '') + fmt(v);
 
 export function mount(el, _actions) {   // 折線圖不需要 actions，簽章統一
   chart = new Chart(el, {
@@ -81,15 +84,44 @@ export function mount(el, _actions) {   // 折線圖不需要 actions，簽章�
               const cell = run.cells[ctx.dataIndex];
               const name = label(cell.score);
               const target = cell.target ? `${cell.target}·` : '';
-              const value = lastState.mode === 'raw'
-                ? fmt(ctx.parsed.y)
-                : (ctx.parsed.y > 0 ? '+' : '') + fmt(ctx.parsed.y);
+              const value = lastState.mode === 'raw' ? fmt(ctx.parsed.y) : signed(ctx.parsed.y);
               return `${run.name}　${value}${name ? `　${target}${name}` : ''}`;
+            },
+            // raw 模式才顯示「N 趟平均」；N 與平均值都要跟 state.mean 用同一個基準，
+            // 不能自己重算（自己滿 2 趟用自己的，否則退回內建 6 趟，邏輯在 meanBasis）
+            afterBody: t => {
+              if (lastState.mode !== 'raw') return '';
+              const n = meanBasis(lastState.runs).runs.length;
+              return `\n${n} 趟平均 ${fmt(lastState.mean[t[0].dataIndex])}`;
             }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          border: { color: css('--line2') },
+          ticks: { color: css('--ink3'), font: { size: 11 }, autoSkip: false, maxRotation: 45 }
+        },
+        y: {
+          grid: { color: css('--line') },
+          border: { display: false },
+          ticks: {
+            color: css('--ink3'), font: { size: 11 },
+            callback: v => (lastState && lastState.mode !== 'raw') ? signed(v) : fmt(v)
           }
         }
       }
     }
+  });
+
+  // 系統深色模式即時切換時，chart.js 不會自己重讀 CSS 變數，要手動把顏色寫回 options 再 update
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    chart.options.scales.x.border.color = css('--line2');
+    chart.options.scales.x.ticks.color = css('--ink3');
+    chart.options.scales.y.grid.color = css('--line');
+    chart.options.scales.y.ticks.color = css('--ink3');
+    chart.update();
   });
 }
 
