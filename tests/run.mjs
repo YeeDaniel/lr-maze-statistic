@@ -1,4 +1,5 @@
 import { report } from './harness.mjs';
+import './esc.test.mjs';
 import './official.test.mjs';
 import './decode.test.mjs';
 import './stats.test.mjs';

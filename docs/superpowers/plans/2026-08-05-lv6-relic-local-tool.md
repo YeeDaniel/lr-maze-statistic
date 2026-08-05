@@ -19,6 +19,7 @@
 - **index 19（100% 魔王兔兔）**：`score` 恆為 0、`target` 恆為 `null`、不可編輯
 - **md 第六節的「待確認事項」不得寫成程式規則**（光暗屬性從未出現、正向類型 0/25、負向屬性偏少）—— 那是樣本不足的觀察
 - 測試指令固定為 `node tests/run.mjs`，必須零依賴
+- **使用者可控文字（趟次的 `id` / `name` / `note` / `from`）內插進 `innerHTML` 前一律經過 `js/esc.js` 的 `esc()`** —— 這些值可能來自匯入的 JSON，`store.validate` 不檢查其內容。官方資料表的遺物名稱與效果是內建常數，不在此列
 
 ---
 
@@ -33,6 +34,7 @@
 | `js/config.js` | LV6 常數：`PROG` / `STAGE` / `FRONT` / `BONUS` / `MULT` / `CELLS` / `BOSS_INDEX` | 無 |
 | `js/official.js` | 官方遺物表 `RELICS`、`TYPE_TARGETS`、`ELEM_TARGETS` | 無 |
 | `js/baseline.js` | 作者 6 趟，唯讀，`origin: 'builtin'` | `config.js` |
+| `js/esc.js` | HTML 跳脫工具 `esc(s)`。凡是把使用者可控文字內插進 `innerHTML` 都要經過它 | 無 |
 | `js/decode.js` | 分數 → `{grade, sign, kind, candidates, effects, ok}` | `official.js` |
 | `js/stats.js` | 純函式統計：小計、總分、平均基準、差距、累積、分組 | `config.js` |
 | `js/store.js` | localStorage 讀寫、驗證、匯出匯入、訂閱 | `config.js` |
@@ -1451,6 +1453,7 @@ Expected: FAIL —— `Cannot find module '../js/view-detail.js'`
 import { PROG, STAGE, BOSS_INDEX } from './config.js';
 import { total, subtotal } from './stats.js';
 import { decode } from './decode.js';
+import { esc } from './esc.js';
 
 export function buildRows(run, mean) {
   return run.cells.map((cell, i) => {
@@ -1492,7 +1495,7 @@ export function update(state) {
   if (!run) { root.innerHTML = ''; return; }
 
   const tabs = state.runs.map(r =>
-    `<button data-run="${r.id}" class="pick" aria-pressed="${r.id === picked}">${r.name}</button>`
+    `<button data-run="${esc(r.id)}" class="pick" aria-pressed="${r.id === picked}">${esc(r.name)}</button>`
   ).join('');
 
   const rows = buildRows(run, state.mean).map(r => `
@@ -1507,7 +1510,7 @@ export function update(state) {
   root.innerHTML = `
     <h2>每輪明細</h2>
     <div class="picks">${tabs}</div>
-    <p class="sub">${run.note || ''}　遺物小計 ${fmt(subtotal(run))}　總分 ${fmt(total(run))}</p>
+    <p class="sub">${esc(run.note || '')}　遺物小計 ${fmt(subtotal(run))}　總分 ${fmt(total(run))}</p>
     <table class="detail">
       <thead><tr><th>進度</th><th>關卡</th><th>遺物</th><th class="num">分數</th><th class="num">與平均</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -1615,6 +1618,7 @@ Expected: FAIL —— `Cannot find module '../js/view-dist.js'`
 ```js
 import { RELICS } from './official.js';
 import { PROG } from './config.js';
+import { esc } from './esc.js';
 
 /**
  * 把官方十二組分數攤成刻度，疊上實測命中次數與出處。
@@ -1674,7 +1678,8 @@ function renderPanel(panel) {
     const dot = t.hits
       ? `<i class="dot" style="background:${colour};transform:scale(${1 + Math.min(t.hits, 6) * 0.18})"></i>`
       : '';
-    return `<span class="tick" style="left:${pct}%" title="${title}">${dot}</span>`;
+    // title 含趟次名稱，是使用者可控文字（可能來自匯入的 JSON），必須跳脫
+    return `<span class="tick" style="left:${pct}%" title="${esc(title)}">${dot}</span>`;
   }).join('');
 
   return `
@@ -1818,6 +1823,7 @@ Expected: FAIL —— `Cannot find module '../js/view-entry.js'`
 import { PROG, STAGE, BOSS_INDEX } from './config.js';
 import { decode, targetOptions } from './decode.js';
 import { blankRun, DRAFT_KEY } from './store.js';
+import { esc } from './esc.js';
 
 export function buildFields(run) {
   return run.cells.map((cell, i) => {
@@ -1953,8 +1959,8 @@ function render() {
 
   root.innerHTML = `
     <div class="entry">
-      <label>趟次名稱<input id="entry-name" value="${editing.name}"></label>
-      <label>備註<input id="entry-note" value="${editing.note}" placeholder="例如：75% 開始坐牢"></label>
+      <label>趟次名稱<input id="entry-name" value="${esc(editing.name)}"></label>
+      <label>備註<input id="entry-note" value="${esc(editing.note)}" placeholder="例如：75% 開始坐牢"></label>
       <div class="cells">${rows}</div>
       <div class="entryfoot">
         <button id="entry-save" class="primary">存檔</button>
@@ -2115,6 +2121,7 @@ Expected: FAIL —— `Cannot find module '../js/view-manage.js'`
 ```js
 import { total } from './stats.js';
 import { exportText, parseImport } from './store.js';
+import { esc } from './esc.js';
 
 export function buildList(runs) {
   return runs.map(r => ({
@@ -2205,12 +2212,12 @@ export function update(state) {
   lastState = state;
   const rows = buildList(state.runs).map(r => `
     <li>
-      <div><b>${r.name}</b>${r.badge ? ` <em>${r.badge}</em>` : ''}
+      <div><b>${esc(r.name)}</b>${r.badge ? ` <em>${esc(r.badge)}</em>` : ''}
         <span class="num">${fmt(r.total)}</span></div>
-      ${r.note ? `<div class="sub">${r.note}</div>` : ''}
+      ${r.note ? `<div class="sub">${esc(r.note)}</div>` : ''}
       <div class="ops">
-        ${r.editable ? `<button data-edit="${r.id}">編輯</button>` : ''}
-        ${r.deletable ? `<button data-del="${r.id}" class="danger">刪除</button>` : ''}
+        ${r.editable ? `<button data-edit="${esc(r.id)}">編輯</button>` : ''}
+        ${r.deletable ? `<button data-del="${esc(r.id)}" class="danger">刪除</button>` : ''}
       </div>
     </li>`).join('');
 

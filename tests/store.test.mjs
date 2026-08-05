@@ -95,6 +95,40 @@ test('匯入壞資料時 throw 中文訊息', () => {
   ok(threw.includes('格式'), `訊息應提到格式，實得：${threw}`);
 });
 
+test('validate 擋掉 id 不是字串的趟', () => {
+  const r = blankRun('Z');
+  r.id = 12345;
+  let threw = null;
+  try { validate({ v: SCHEMA, runs: [r] }); } catch (e) { threw = e.message; }
+  ok(threw, '應該要 throw');
+  ok(threw.includes('id'), `訊息應提到 id，實得：${threw}`);
+});
+
+test('validate 擋掉 name 不是字串的趟（避免匯入資料把物件塞進 innerHTML）', () => {
+  const r = blankRun('W');
+  r.name = { evil: '<img src=x onerror=alert(1)>' };
+  let threw = null;
+  try { validate({ v: SCHEMA, runs: [r] }); } catch (e) { threw = e.message; }
+  ok(threw, '應該要 throw');
+  ok(threw.includes('name'), `訊息應提到 name，實得：${threw}`);
+});
+
+test('validate 擋掉 note 不是字串（且不是 undefined）的趟', () => {
+  const r = blankRun('V');
+  r.note = 42;
+  let threw = null;
+  try { validate({ v: SCHEMA, runs: [r] }); } catch (e) { threw = e.message; }
+  ok(threw, '應該要 throw');
+  ok(threw.includes('note'), `訊息應提到 note，實得：${threw}`);
+});
+
+test('validate 允許 note 是 undefined', () => {
+  const r = blankRun('U');
+  delete r.note;
+  validate({ v: SCHEMA, runs: [r] }); // 不該 throw
+  ok(true, '不該執行到這裡都算通過');
+});
+
 test('storage 寫入失敗時 save 回報而不炸掉', () => {
   const s = memoryStorage();
   s.setItem = () => { throw new Error('QuotaExceededError'); };
