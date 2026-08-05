@@ -2,6 +2,22 @@
 h1{font-size:21px;font-weight:600;margin:0;letter-spacing:.01em}
 .sub{color:var(--ink2);font-size:13px;margin:4px 0 0}
 
+/* 最上層分頁。用底線式而非 .mode 的膠囊式，跟下層的模式切換拉開層級 */
+.tabs{display:flex;gap:22px;margin:22px 0 0;border-bottom:1px solid var(--line)}
+.tab{font:inherit;font-size:14px;padding:11px 2px;background:none;border:0;
+     border-bottom:2px solid transparent;margin-bottom:-1px;
+     color:var(--ink3);cursor:pointer}
+.tab:hover{color:var(--ink2)}
+.tab[aria-pressed=true]{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
+.tab:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* localStorage 被禁、存檔失敗、存檔壞掉時的橫幅 */
+.warning{margin:16px 0 0;padding:11px 13px;font-size:13px;
+         background:var(--panel);border:1px solid #d64545;
+         border-left-width:3px;border-radius:8px}
+
+.basis{font-size:12px;color:var(--ink3);margin:0 0 12px}
+
 .runs{margin:28px 0 0;border-top:1px solid var(--line)}
 .run{display:grid;grid-template-columns:26px 1fr auto 110px;align-items:center;gap:14px;
      width:100%;padding:11px 4px;background:none;border:none;border-bottom:1px solid var(--line);
@@ -35,14 +51,30 @@ h1{font-size:21px;font-weight:600;margin:0;letter-spacing:.01em}
 .note{font-size:12px;color:var(--ink3);margin:12px 0 0;display:flex;align-items:center;gap:7px}
 .note span{width:14px;height:11px;background:var(--band);border:1px solid var(--line2);border-radius:2px;flex:none}
 
-.howto{margin:40px 0 0;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--ink2)}
-.howto h2{font-size:14px;font-weight:600;color:var(--ink);margin:0 0 8px}
-.howto code{font-family:var(--mono);font-size:12px;background:var(--panel);
-            border:1px solid var(--line);border-radius:4px;padding:1px 5px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
-#detail{overflow-x:auto}
-.detail th,.detail td{white-space:nowrap}
+/* ── 每輪明細 ── */
+#detail{margin:44px 0 0;padding-top:24px;border-top:1px solid var(--line)}
+#detail h2{font-size:16px;font-weight:600;margin:0}
+
+/* 趟次切換。沿用 .mode 的視覺語彙，兩者都是同層級的切換控制 */
+.picks{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 0}
+.pick{font:inherit;font-size:13px;padding:6px 13px;border:1px solid var(--line2);
+      background:var(--panel);color:var(--ink2);border-radius:6px;cursor:pointer}
+.pick:hover{border-color:var(--ink3)}
+.pick[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.pick:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* 捲動放在表格外層而非 #detail，區塊標題與趟次切換才不會跟著橫捲 */
+.tablewrap{overflow-x:auto;margin:14px 0 0}
+.detail{border-collapse:collapse;width:100%;font-size:13px}
+.detail th,.detail td{white-space:nowrap;text-align:left;padding:7px 14px 7px 0;
+                      border-bottom:1px solid var(--line)}
+.detail th{font-size:12px;font-weight:500;color:var(--ink3);border-bottom-color:var(--line2)}
+.detail th:last-child,.detail td:last-child{padding-right:0}
+.detail .num{text-align:right}
+.detail tbody tr:hover td{background:var(--panel)}
+.detail tr.warn td{color:#d64545}
 
 #dist{margin:44px 0 0;padding-top:24px;border-top:1px solid var(--line)}
 #dist h2{font-size:16px;font-weight:600;margin:0}
@@ -97,6 +129,7 @@ h1{font-size:21px;font-weight:600;margin:0;letter-spacing:.01em}
 .cell input { width:100%; font-size:17px }  /* ≥16px 才不會讓 iOS 自動放大 */
 .badge { color:var(--ink2); font-size:13px; min-height:1.2em }
 .cellwarn { color:#d64545; font-size:13px }
+.cellnote { color:var(--ink3); font-size:13px }
 .chips { display:flex; flex-wrap:wrap; gap:8px }
 .chips button {
   min-width:44px; min-height:44px; padding:0 14px;
@@ -105,8 +138,12 @@ h1{font-size:21px;font-weight:600;margin:0;letter-spacing:.01em}
 }
 .chips button[aria-pressed="true"] { background:var(--ink); color:var(--bg); border-color:var(--ink) }
 .entryfoot { display:flex; gap:10px; position:sticky; bottom:0; padding:12px 0; background:var(--bg) }
-button.primary { background:var(--ink); color:var(--bg); border:0 }
 .entryfoot button { min-height:44px; padding:0 20px; border-radius:8px; font:inherit; cursor:pointer }
+/* .primary 也用在 .entryfoot 之外（例如「新增一趟」），所以尺寸要自帶 */
+button.primary { background:var(--ink); color:var(--bg); border:0;
+                 min-height:44px; padding:0 20px; border-radius:8px; font:inherit; cursor:pointer }
+button.primary:hover { opacity:.88 }
+#entry { margin:24px 0 0 }
 
 @media (min-width:720px) {
   .cell { grid-template-columns:120px 110px 150px 1fr; align-items:center; gap:12px }
@@ -121,9 +158,13 @@ button.primary { background:var(--ink); color:var(--bg); border:0 }
    跟著內容一起捲動，永遠在原本的版面位置，不會蓋住任何東西。 */
 @media (max-width:719px) {
   .entryfoot { position:static; }
+  /* 觸控目標放大到 44px */
+  .mode,.pick { min-height:44px; padding:6px 15px }
 }
 
 /* ── 趟次管理 ── */
+#manage h2 { font-size:16px; font-weight:600; margin:30px 0 4px }
+#manage h2:first-child { margin-top:24px }
 .runlist { list-style:none; padding:0; margin:12px 0; display:grid; gap:10px }
 .runlist li { padding:12px; border:1px solid var(--line); border-radius:10px }
 .runlist li > div:first-child { display:flex; gap:8px; align-items:baseline; flex-wrap:wrap }

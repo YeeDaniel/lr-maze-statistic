@@ -59,8 +59,10 @@ export function update(state) {
     <h2>每輪明細</h2>
     <div class="picks">${tabs}</div>
     <p class="sub">${esc(run.note || '')}　遺物小計 ${fmt(subtotal(run))}　總分 ${fmt(total(run))}</p>
-    <table class="detail">
-      <thead><tr><th>進度</th><th>關卡</th><th>遺物</th><th class="num">分數</th><th class="num">與平均</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+    <div class="tablewrap">
+      <table class="detail">
+        <thead><tr><th>進度</th><th>關卡</th><th>遺物</th><th class="num">分數</th><th class="num">與平均</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
