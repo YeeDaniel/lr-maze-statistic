@@ -4,17 +4,30 @@
 
 LINE Rangers 遺跡 LV6 的遺物分數紀錄與分析工具。玩家每趟會經過 20 個檢查點，各拿到一顆遺物，本工具記錄分數並做統計。
 
-正在從「單一 HTML、資料硬編碼」改成「別人也能用、各自輸入、存自己瀏覽器、不同步」的靜態網站。
+已從「單一 HTML、資料硬編碼」改成「別人也能用、各自輸入、存自己瀏覽器、不同步」的靜態網站。
 
 ## 檔案地圖
 
 | 路徑 | 內容 |
 |---|---|
 | `LV6遺物分數分析.md` | **領域知識來源**。計分公式、遺物對照表、六趟實測分析、待確認事項 |
-| `lv6-relic-scores.html` | 現行版本。單檔 231KB，Chart.js 內嵌，資料寫在 `const RUNS`（第 152 行） |
-| `docs/superpowers/specs/2026-08-05-lv6-relic-local-tool-design.md` | 改版設計文件。動工前先讀 |
+| `index.html` | 進入點，兩個分頁：統計／我的紀錄 |
+| `css/base.css` | CSS 變數、深色模式、中文排版 |
+| `css/app.css` | 版面與元件樣式 |
+| `js/config.js` | LV6 常數 |
+| `js/official.js` | 官方遺物分數表（12 組、94 個相異分數） |
+| `js/baseline.js` | 作者 6 趟，唯讀基準線 |
+| `js/esc.js` | HTML 跳脫工具，使用者可控文字內插前一律經過這裡 |
+| `js/decode.js` | 分數反推級距/正負/類型或屬性/候選遺物 |
+| `js/stats.js` | 純函式統計 |
+| `js/store.js` | localStorage 讀寫、驗證、匯出匯入 |
+| `js/view-chart.js` / `view-detail.js` / `view-dist.js` / `view-entry.js` / `view-manage.js` | 各分頁的畫面模組 |
+| `js/main.js` | state 調度，串起各 view 模組 |
+| `vendor/chart.umd.js` | Chart.js，本地 vendor 檔 |
+| `tests/` | `harness.mjs`（極簡斷言工具）+ `run.mjs`（入口）+ `*.test.mjs` |
+| `docs/superpowers/specs/2026-08-05-lv6-relic-local-tool-design.md` | 改版設計文件 |
 
-改版後的結構見設計文件第三節。
+結構細節見設計文件第三節。
 
 ## 領域重點
 
@@ -46,6 +59,7 @@ md 第六節列了四項尚未確認的觀察（光暗屬性從未出現、正�
 - **只做 LV6**：關卡序列寫死
 - **不做後端**：無帳號、無同步，資料只在 localStorage
 - 部署走 GitHub Pages，指 `main` branch root，全用相對路徑
+- **XSS 防線**：使用者可控的文字（趟次名稱、備註等）內插進 `innerHTML` 前，一律先經過 `js/esc.js` 的 `esc()` 跳脫
 
 理由都記在設計文件第二節。
 
@@ -61,5 +75,5 @@ node 原生執行，零依賴。純函式模組（`decode` / `stats` / `store` �
 
 ## 現況
 
-- 尚未 `git init`
-- 改版尚未動工，設計文件已完成待審
+- 已在 `feat/local-tool` 分支完成十個功能任務，`node tests/run.mjs` 76 通過 0 失敗
+- 尚未部署：還沒推上 GitHub、還沒開 Pages
