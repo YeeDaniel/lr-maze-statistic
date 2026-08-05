@@ -1,8 +1,8 @@
 import { PROG, STAGE, FRONT } from './config.js';
 import { deviation, cumulative, meanBasis } from './stats.js';
 import { label } from './decode.js';
+import { HUE } from './palette.js';
 
-const HUE = ['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#4a3aa7','#e34948'];
 const DASH = [[],[6,3],[2,3],[9,3,2,3],[11,4],[4,2],[3,3,8,3],[14,4]];
 
 const css = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();

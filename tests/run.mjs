@@ -9,5 +9,6 @@ import './view-detail.test.mjs';
 import './view-dist.test.mjs';
 import './view-entry.test.mjs';
 import './view-manage.test.mjs';
+import './view-runs.test.mjs';
 
 process.exit(report() ? 1 : 0);

@@ -6,6 +6,7 @@ import * as viewDetail from './view-detail.js';
 import * as viewDist from './view-dist.js';
 import * as viewEntry from './view-entry.js';
 import * as viewManage from './view-manage.js';
+import * as viewRuns from './view-runs.js';
 
 /** localStorage 被禁時退回記憶體，功能照常，只是關掉就沒了 */
 function pickStorage() {
@@ -41,7 +42,8 @@ const state = {
 const actions = {
   mutate,                  // function 宣告會提升，這裡取得到
   rerender: () => render(),
-  openEntry: null          // Task 9 註冊 view-entry 時填入
+  openEntry: null,         // Task 9 註冊 view-entry 時填入
+  toggleRun                // 給 view-runs 用，切換某趟在圖表/分布圖裡的顯示與否
 };
 
 /** 已註冊的視圖。每個都要有 mount(el, actions) 與 update(state) */
@@ -116,6 +118,7 @@ document.getElementById('modes').addEventListener('click', e => {
   setMode(btn.dataset.m);
 });
 
+register(viewRuns, document.getElementById('runs'));
 register(viewChart, document.getElementById('c'));
 register(viewDetail, document.getElementById('detail'));
 register(viewDist, document.getElementById('dist'));
