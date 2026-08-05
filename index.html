@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>遺跡 LV6 · 遺物分數紀錄</title>
+<link rel="stylesheet" href="./css/base.css">
+<link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>遺跡 LV6 · 遺物分數紀錄</h1>
+  <p class="sub">每趟 20 個檢查點（5%–100%）· 資料只存在你自己的瀏覽器</p>
+
+  <div id="warning" class="warning" hidden></div>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab" data-tab="stats" aria-pressed="true">統計</button>
+    <button class="tab" data-tab="manage" aria-pressed="false">我的紀錄</button>
+  </nav>
+
+  <section id="tab-stats">
+    <div class="runs" id="runs"></div>
+    <div class="modes" id="modes">
+      <button class="mode" data-m="raw" aria-pressed="true">單關分數</button>
+      <button class="mode" data-m="dev" aria-pressed="false">與平均差距</button>
+      <button class="mode" data-m="cum" aria-pressed="false">累積差距</button>
+    </div>
+    <p class="basis" id="basis"></p>
+    <div class="chartwrap"><canvas id="c" role="img"
+      aria-label="各趟 LV6 紀錄在 5% 到 100% 檢查點的遺物分數折線圖"></canvas></div>
+    <p class="note"><span></span>灰底為正面關（30% / 50% / 70% / 90%），只掉正向遺物，分數天然偏低</p>
+    <div id="detail"></div>
+    <div id="dist"></div>
+  </section>
+
+  <section id="tab-manage" hidden>
+    <div id="manage"></div>
+    <div id="entry"></div>
+  </section>
+</div>
+
+<script src="./vendor/chart.umd.js"></script>
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>

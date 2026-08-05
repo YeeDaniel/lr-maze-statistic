@@ -1,0 +1,145 @@
+.wrap{max-width:960px;margin:0 auto;padding:40px 20px 64px}
+h1{font-size:21px;font-weight:600;margin:0;letter-spacing:.01em}
+.sub{color:var(--ink2);font-size:13px;margin:4px 0 0}
+
+.runs{margin:28px 0 0;border-top:1px solid var(--line)}
+.run{display:grid;grid-template-columns:26px 1fr auto 110px;align-items:center;gap:14px;
+     width:100%;padding:11px 4px;background:none;border:none;border-bottom:1px solid var(--line);
+     color:inherit;font:inherit;text-align:left;cursor:pointer}
+.run:hover{background:var(--panel)}
+.run:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+.run[aria-pressed=false]{color:var(--ink3)}
+.run[aria-pressed=false] .swatch,.run[aria-pressed=false] .bar i{opacity:.22}
+.swatch{height:0;border-top-width:3px;border-top-style:solid;border-radius:2px}
+.rname{font-size:14px}
+.rtot{font-size:14px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.bar{display:flex;align-items:center;gap:8px}
+.bar u{flex:1;height:4px;background:var(--line);border-radius:2px;overflow:hidden;text-decoration:none}
+.bar i{display:block;height:100%;background:var(--ink2);border-radius:2px}
+.bar b{font-size:11px;font-weight:400;color:var(--ink3);font-family:var(--mono);min-width:34px;text-align:right}
+
+.modes{display:flex;gap:6px;margin:26px 0 14px;flex-wrap:wrap}
+.mode{font:inherit;font-size:13px;padding:6px 13px;border:1px solid var(--line2);
+      background:var(--panel);color:var(--ink2);border-radius:6px;cursor:pointer}
+.mode:hover{border-color:var(--ink3)}
+.mode[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.mode:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.chartwrap{position:relative;height:380px;background:var(--panel);border:1px solid var(--line);
+           border-radius:10px;padding:12px 8px 4px}
+@media (max-width:620px){
+  .chartwrap{height:320px}
+  .run{grid-template-columns:22px 1fr auto;gap:10px}
+  .bar{display:none}
+}
+.note{font-size:12px;color:var(--ink3);margin:12px 0 0;display:flex;align-items:center;gap:7px}
+.note span{width:14px;height:11px;background:var(--band);border:1px solid var(--line2);border-radius:2px;flex:none}
+
+.howto{margin:40px 0 0;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--ink2)}
+.howto h2{font-size:14px;font-weight:600;color:var(--ink);margin:0 0 8px}
+.howto code{font-family:var(--mono);font-size:12px;background:var(--panel);
+            border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+#detail{overflow-x:auto}
+.detail th,.detail td{white-space:nowrap}
+
+#dist{margin:44px 0 0;padding-top:24px;border-top:1px solid var(--line)}
+#dist h2{font-size:16px;font-weight:600;margin:0}
+.dlg{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--ink2);margin:16px 0 24px}
+.dlg span{display:flex;align-items:center;gap:6px}
+.dlg i{width:9px;height:9px;border-radius:50%;display:block;box-sizing:border-box}
+.pnl{margin:0 0 26px}
+.ph{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:6px;
+    margin-bottom:10px;border-bottom:1px solid var(--line)}
+.pt{font-size:14px;font-weight:600}
+.pn{font-size:12px;color:var(--ink3);font-family:var(--mono);font-variant-numeric:tabular-nums}
+.drow{display:grid;grid-template-columns:126px minmax(0,1fr);align-items:end;gap:14px;margin-bottom:5px}
+.rl{font-size:12px;color:var(--ink2);padding-bottom:3px;line-height:1.4}
+.plot{position:relative;border-bottom:1px solid var(--line)}
+.gd{position:absolute;top:2px;bottom:0;width:1px;background:var(--line2);opacity:.9}
+.tk{position:absolute;top:2px;font-size:11px;color:var(--ink3);transform:translateX(-50%);
+    font-family:var(--mono);font-variant-numeric:tabular-nums}
+@media (max-width:620px){
+  .drow{grid-template-columns:98px minmax(0,1fr);gap:10px}
+}
+
+/* 分布圖：每個面板一條刻度尺（.axis），刻度（.tick）用 left:% 沿軸定位，
+   有命中的刻度疊上圓點（.dot）；未命中的只留一條細線當官方分數的刻度標記 */
+.panel{margin:0 0 22px}
+.plabel{font-size:12px;color:var(--ink2);margin:0 0 10px;font-weight:500}
+.axis{position:relative;height:26px;border-bottom:1px solid var(--line)}
+.tick{position:absolute;top:0;bottom:0;cursor:default}
+.tick::before{content:'';position:absolute;left:0;top:3px;bottom:3px;width:1px;background:var(--line2)}
+.tick:hover::before{background:var(--ink3)}
+.dot{position:absolute;left:0;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;
+     border-radius:50%;box-sizing:border-box;cursor:pointer}
+.prange{display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);
+        font-family:var(--mono);font-variant-numeric:tabular-nums;margin-top:6px}
+
+/* ── 輸入表單 ── */
+.entry label { display:block; margin:10px 0 }
+.entry label input { display:block; width:100%; margin-top:4px }
+.entry input, .entry textarea {
+  padding:10px; font:inherit; color:var(--ink);
+  background:transparent; border:1px solid var(--line); border-radius:8px;
+}
+.cells { display:grid; gap:12px; margin:16px 0 }
+.cell {
+  padding:12px; border:1px solid var(--line); border-radius:10px;
+  display:grid; gap:8px;
+}
+.cell.warn { border-color:#d64545 }
+.cell.locked { opacity:.55 }
+.cellhead { display:flex; gap:8px; align-items:baseline }
+.cellhead b { font-size:15px }
+.cellhead span { color:var(--ink3); font-size:13px }
+.cell input { width:100%; font-size:17px }  /* ≥16px 才不會讓 iOS 自動放大 */
+.badge { color:var(--ink2); font-size:13px; min-height:1.2em }
+.cellwarn { color:#d64545; font-size:13px }
+.chips { display:flex; flex-wrap:wrap; gap:8px }
+.chips button {
+  min-width:44px; min-height:44px; padding:0 14px;
+  font:inherit; color:var(--ink); cursor:pointer;
+  background:transparent; border:1px solid var(--line); border-radius:22px;
+}
+.chips button[aria-pressed="true"] { background:var(--ink); color:var(--bg); border-color:var(--ink) }
+.entryfoot { display:flex; gap:10px; position:sticky; bottom:0; padding:12px 0; background:var(--bg) }
+button.primary { background:var(--ink); color:var(--bg); border:0 }
+.entryfoot button { min-height:44px; padding:0 20px; border-radius:8px; font:inherit; cursor:pointer }
+
+@media (min-width:720px) {
+  .cell { grid-template-columns:120px 110px 150px 1fr; align-items:center; gap:12px }
+  .cellhead { flex-direction:column; gap:0 }
+  .badge, .chips { margin:0 }
+  .cellwarn { grid-column:1 / -1 }
+}
+
+/* <720px 時每格是直向堆疊（label→input→badge→chips），填完分數新長出的
+   badge/chips 常常剛好落在畫面最下面 —— 跟固定在視窗底部的 sticky 工具列
+   打架，量到的是「chip 點不到、點到存檔」。窄螢幕乾脆不要 sticky，工具列
+   跟著內容一起捲動，永遠在原本的版面位置，不會蓋住任何東西。 */
+@media (max-width:719px) {
+  .entryfoot { position:static; }
+}
+
+/* ── 趟次管理 ── */
+.runlist { list-style:none; padding:0; margin:12px 0; display:grid; gap:10px }
+.runlist li { padding:12px; border:1px solid var(--line); border-radius:10px }
+.runlist li > div:first-child { display:flex; gap:8px; align-items:baseline; flex-wrap:wrap }
+.runlist em { font-style:normal; font-size:12px; color:var(--ink3);
+              padding:2px 8px; border:1px solid var(--line); border-radius:20px }
+.runlist .num { margin-left:auto; font-variant-numeric:tabular-nums }
+.ops { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px }
+.ops button {
+  min-height:44px; padding:0 16px; font:inherit; color:var(--ink); cursor:pointer;
+  background:transparent; border:1px solid var(--line); border-radius:8px;
+}
+.ops button.danger { color:#d64545; border-color:#d64545 }
+#im-text { width:100%; padding:10px; font:inherit; color:var(--ink);
+           background:transparent; border:1px solid var(--line); border-radius:8px }
+.whose { display:grid; gap:8px; margin:10px 0 }
+.whose label { display:flex; gap:8px; align-items:center; min-height:44px }
+#im-from { padding:10px; font:inherit; color:var(--ink);
+           background:transparent; border:1px solid var(--line); border-radius:8px }
+#im-go { min-height:44px; padding:0 20px; border-radius:8px; font:inherit; cursor:pointer }

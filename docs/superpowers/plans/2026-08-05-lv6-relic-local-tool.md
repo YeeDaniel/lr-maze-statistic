@@ -19,6 +19,7 @@
 - **index 19（100% 魔王兔兔）**：`score` 恆為 0、`target` 恆為 `null`、不可編輯
 - **md 第六節的「待確認事項」不得寫成程式規則**（光暗屬性從未出現、正向類型 0/25、負向屬性偏少）—— 那是樣本不足的觀察
 - 測試指令固定為 `node tests/run.mjs`，必須零依賴
+- **使用者可控文字（趟次的 `id` / `name` / `note` / `from`）內插進 `innerHTML` 前一律經過 `js/esc.js` 的 `esc()`** —— 這些值可能來自匯入的 JSON，`store.validate` 不檢查其內容。官方資料表的遺物名稱與效果是內建常數，不在此列
 
 ---
 
@@ -33,6 +34,7 @@
 | `js/config.js` | LV6 常數：`PROG` / `STAGE` / `FRONT` / `BONUS` / `MULT` / `CELLS` / `BOSS_INDEX` | 無 |
 | `js/official.js` | 官方遺物表 `RELICS`、`TYPE_TARGETS`、`ELEM_TARGETS` | 無 |
 | `js/baseline.js` | 作者 6 趟，唯讀，`origin: 'builtin'` | `config.js` |
+| `js/esc.js` | HTML 跳脫工具 `esc(s)`。凡是把使用者可控文字內插進 `innerHTML` 都要經過它 | 無 |
 | `js/decode.js` | 分數 → `{grade, sign, kind, candidates, effects, ok}` | `official.js` |
 | `js/stats.js` | 純函式統計：小計、總分、平均基準、差距、累積、分組 | `config.js` |
 | `js/store.js` | localStorage 讀寫、驗證、匯出匯入、訂閱 | `config.js` |
@@ -936,8 +938,8 @@ git commit -m "feat: 加入 store，處理持久化、驗證與匯出匯入"
 - Consumes: `baseline.js`、`store.js`、`stats.js`
 - Produces:
   - `main.js` 的 state 形狀：`{ runs: Run[], visible: Set<string>, mode: 'raw'|'dev'|'cum', tab: 'stats'|'manage', mean: number[20], meanSource: 'mine'|'builtin', warning: string|null }`
-  - 全域函式 `mutate(fn)`：改完 store 後重存並重繪
-  - 各 view 一律實作 `mount(el)` 與 `update(state)` 兩個函式
+  - `actions` 物件：`{ mutate(fn), openEntry(run|null), rerender() }`
+  - **各 view 一律實作 `mount(el, actions)` 與 `update(state)` 兩個函式。view 不得 import `main.js`，也不得互相 import** —— 需要別人做事就用 `actions`。相依單向 `main → view-*`，沒有循環
 
 - [ ] **Step 1: 取出 Chart.js**
 
@@ -1045,10 +1047,20 @@ const state = {
   warning: storageWarning
 };
 
-/** 已註冊的視圖。每個都要有 mount(el) 與 update(state) */
+/**
+ * 交給 view 用的動作。view 不 import main，需要做事就呼叫這裡的函式，
+ * 相依方向維持單向 main → view-*。
+ */
+const actions = {
+  mutate,                  // function 宣告會提升，這裡取得到
+  rerender: () => render(),
+  openEntry: null          // Task 9 註冊 view-entry 時填入
+};
+
+/** 已註冊的視圖。每個都要有 mount(el, actions) 與 update(state) */
 const views = [];
 export function register(view, el) {
-  view.mount(el);
+  view.mount(el, actions);
   views.push(view);
 }
 
@@ -1152,7 +1164,7 @@ git commit -m "feat: 加入頁面骨架、CSS 拆檔與 main.js state 調度"
 - Consumes: `config.js`、`stats.js`、`decode.js`、全域 `Chart`
 - Produces:
   - `buildDatasets(state) => Array<{ label, data, borderColor, borderDash, hidden }>`（純函式，可在 node 測）
-  - `mount(el)`、`update(state)`
+  - `mount(el, actions)`、`update(state)`
 
 - [ ] **Step 1: 寫失敗的測試**
 
@@ -1284,7 +1296,7 @@ const zero = { id: 'zero', beforeDatasetsDraw(ch) {
 
 const fmt = v => Math.round(v).toLocaleString('en-US');
 
-export function mount(el) {
+export function mount(el, _actions) {   // 折線圖不需要 actions，簽章統一
   chart = new Chart(el, {
     type: 'line',
     plugins: [bands, zero],
@@ -1372,7 +1384,7 @@ git commit -m "feat: 折線圖移植到 view-chart，資料改吃 state"
 - Consumes: `config.js`、`stats.js`、`decode.js`
 - Produces:
   - `buildRows(run, mean) => Array<{ prog, stage, score, target, relic, effect, dev, warn }>`
-  - `mount(el)`、`update(state)`
+  - `mount(el, actions)`、`update(state)`
 
 - [ ] **Step 1: 寫失敗的測試**
 
@@ -1441,6 +1453,7 @@ Expected: FAIL —— `Cannot find module '../js/view-detail.js'`
 import { PROG, STAGE, BOSS_INDEX } from './config.js';
 import { total, subtotal } from './stats.js';
 import { decode } from './decode.js';
+import { esc } from './esc.js';
 
 export function buildRows(run, mean) {
   return run.cells.map((cell, i) => {
@@ -1463,14 +1476,16 @@ const signed = v => (v > 0 ? '+' : '') + fmt(v);
 
 let root = null;
 let picked = null;
+let act = null;
 
-export function mount(el) {
+export function mount(el, actions) {
   root = el;
+  act = actions;
   root.addEventListener('click', e => {
     const btn = e.target.closest('[data-run]');
     if (!btn) return;
     picked = btn.dataset.run;
-    root.dispatchEvent(new CustomEvent('rerender', { bubbles: true }));
+    act.rerender();
   });
 }
 
@@ -1480,7 +1495,7 @@ export function update(state) {
   if (!run) { root.innerHTML = ''; return; }
 
   const tabs = state.runs.map(r =>
-    `<button data-run="${r.id}" class="pick" aria-pressed="${r.id === picked}">${r.name}</button>`
+    `<button data-run="${esc(r.id)}" class="pick" aria-pressed="${r.id === picked}">${esc(r.name)}</button>`
   ).join('');
 
   const rows = buildRows(run, state.mean).map(r => `
@@ -1495,7 +1510,7 @@ export function update(state) {
   root.innerHTML = `
     <h2>每輪明細</h2>
     <div class="picks">${tabs}</div>
-    <p class="sub">${run.note || ''}　遺物小計 ${fmt(subtotal(run))}　總分 ${fmt(total(run))}</p>
+    <p class="sub">${esc(run.note || '')}　遺物小計 ${fmt(subtotal(run))}　總分 ${fmt(total(run))}</p>
     <table class="detail">
       <thead><tr><th>進度</th><th>關卡</th><th>遺物</th><th class="num">分數</th><th class="num">與平均</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -1508,17 +1523,15 @@ export function update(state) {
 Run: `node tests/run.mjs`
 Expected: PASS —— 51 通過，0 失敗
 
-- [ ] **Step 5: 在 main.js 註冊並接 rerender 事件**
+- [ ] **Step 5: 在 main.js 註冊**
 
 ```js
 import * as viewDetail from './view-detail.js';
 // register 那一段加：
 register(viewDetail, document.getElementById('detail'));
-// 事件監聽那一段加：
-document.addEventListener('rerender', () => render());
 ```
 
-`render` 目前是模組內的函式，`rerender` 監聽器直接呼叫它即可。
+重繪走 `actions.rerender`，不需要額外的事件監聽。
 
 - [ ] **Step 6: 在瀏覽器驗證**
 
@@ -1548,7 +1561,7 @@ git commit -m "feat: 每輪明細表移植到 view-detail"
 - Consumes: `official.js`、`decode.js`
 - Produces:
   - `buildPanels(runs) => Array<{ key, ticks: Array<{ score, name, hits, from: string[] }> }>`
-  - `mount(el)`、`update(state)`
+  - `mount(el, actions)`、`update(state)`
 
 - [ ] **Step 1: 寫失敗的測試**
 
@@ -1605,6 +1618,7 @@ Expected: FAIL —— `Cannot find module '../js/view-dist.js'`
 ```js
 import { RELICS } from './official.js';
 import { PROG } from './config.js';
+import { esc } from './esc.js';
 
 /**
  * 把官方十二組分數攤成刻度，疊上實測命中次數與出處。
@@ -1630,7 +1644,7 @@ export function buildPanels(runs) {
 
 let root = null;
 
-export function mount(el) { root = el; }
+export function mount(el, _actions) { root = el; }   // 分布圖不需要 actions，簽章統一
 
 export function update(state) {
   const panels = buildPanels(state.runs.filter(r => state.visible.has(r.id)));
@@ -1664,7 +1678,8 @@ function renderPanel(panel) {
     const dot = t.hits
       ? `<i class="dot" style="background:${colour};transform:scale(${1 + Math.min(t.hits, 6) * 0.18})"></i>`
       : '';
-    return `<span class="tick" style="left:${pct}%" title="${title}">${dot}</span>`;
+    // title 含趟次名稱，是使用者可控文字（可能來自匯入的 JSON），必須跳脫
+    return `<span class="tick" style="left:${pct}%" title="${esc(title)}">${dot}</span>`;
   }).join('');
 
   return `
@@ -1717,11 +1732,11 @@ git commit -m "feat: 分數分布移植到 view-dist，補上正向類型三組"
 - Modify: `tests/run.mjs`
 
 **Interfaces:**
-- Consumes: `config.js`、`decode.js`、`store.js`、`main.js` 的 `mutate`
+- Consumes: `config.js`、`decode.js`、`store.js`、`actions.mutate`
 - Produces:
   - `buildFields(run) => Array<{ index, prog, stage, score, target, badge, options, locked, warn }>`
   - `nextRunName(runs) => string`
-  - `open(run|null)`、`mount(el)`、`update(state)`
+  - `open(run|null)`、`mount(el, actions)`、`update(state)`
 
 - [ ] **Step 1: 寫失敗的測試**
 
@@ -1805,10 +1820,10 @@ Expected: FAIL —— `Cannot find module '../js/view-entry.js'`
 - [ ] **Step 3: 實作 view-entry.js**
 
 ```js
-import { PROG, STAGE, CELLS, BOSS_INDEX } from './config.js';
+import { PROG, STAGE, BOSS_INDEX } from './config.js';
 import { decode, targetOptions } from './decode.js';
 import { blankRun, DRAFT_KEY } from './store.js';
-import { mutate } from './main.js';
+import { esc } from './esc.js';
 
 export function buildFields(run) {
   return run.cells.map((cell, i) => {
@@ -1838,6 +1853,7 @@ export function nextRunName(runs) {
 }
 
 let root = null;
+let act = null;
 let editing = null;   // 正在編輯的趟（草稿），null 表示沒開表單
 
 export function open(run) {
@@ -1845,8 +1861,9 @@ export function open(run) {
   render();
 }
 
-export function mount(el) {
+export function mount(el, actions) {
   root = el;
+  act = actions;
 
   root.addEventListener('input', e => {
     const input = e.target.closest('input[data-i]');
@@ -1892,7 +1909,7 @@ function clearDraft() {
 
 function commit() {
   const run = editing;
-  mutate(mine => {
+  act.mutate(mine => {
     const idx = mine.findIndex(r => r.id === run.id);
     if (idx >= 0) { const copy = [...mine]; copy[idx] = run; return copy; }
     return [...mine, run];
@@ -1942,8 +1959,8 @@ function render() {
 
   root.innerHTML = `
     <div class="entry">
-      <label>趟次名稱<input id="entry-name" value="${editing.name}"></label>
-      <label>備註<input id="entry-note" value="${editing.note}" placeholder="例如：75% 開始坐牢"></label>
+      <label>趟次名稱<input id="entry-name" value="${esc(editing.name)}"></label>
+      <label>備註<input id="entry-note" value="${esc(editing.note)}" placeholder="例如：75% 開始坐牢"></label>
       <div class="cells">${rows}</div>
       <div class="entryfoot">
         <button id="entry-save" class="primary">存檔</button>
@@ -2002,14 +2019,16 @@ button.primary { background:var(--ink); color:var(--bg); border:0 }
 }
 ```
 
-- [ ] **Step 6: 在 main.js 註冊**
+- [ ] **Step 6: 在 main.js 註冊並補上 openEntry**
 
 ```js
 import * as viewEntry from './view-entry.js';
+// actions 的 openEntry 在 Task 5 是 null，這裡填上：
+actions.openEntry = viewEntry.open;
 register(viewEntry, document.getElementById('entry'));
 ```
 
-注意 `view-entry.js` 從 `main.js` import `mutate`，`main.js` 又 import `view-entry.js` —— 這是循環相依。ES module 能處理，但 `mutate` 必須在模組頂層以 `export function` 宣告（提升），不能用 `export const mutate = () => {}`。確認 `main.js` 用的是 `export function mutate`。
+`view-entry.js` 不 import `main.js` —— 要存檔就呼叫 `act.mutate(...)`。相依維持單向。
 
 - [ ] **Step 7: 在瀏覽器驗證**
 
@@ -2042,10 +2061,10 @@ git commit -m "feat: 加入輸入表單，分數自動推導級距與正負，ch
 - Modify: `tests/run.mjs`
 
 **Interfaces:**
-- Consumes: `store.js`、`stats.js`、`view-entry.js` 的 `open`、`main.js` 的 `mutate`
+- Consumes: `store.js`、`stats.js`、`actions.openEntry`、`actions.mutate`
 - Produces:
   - `buildList(runs) => Array<{ id, name, note, total, origin, badge, editable, deletable }>`
-  - `mount(el)`、`update(state)`
+  - `mount(el, actions)`、`update(state)`
 
 - [ ] **Step 1: 寫失敗的測試**
 
@@ -2102,8 +2121,7 @@ Expected: FAIL —— `Cannot find module '../js/view-manage.js'`
 ```js
 import { total } from './stats.js';
 import { exportText, parseImport } from './store.js';
-import { open } from './view-entry.js';
-import { mutate } from './main.js';
+import { esc } from './esc.js';
 
 export function buildList(runs) {
   return runs.map(r => ({
@@ -2122,24 +2140,26 @@ export function buildList(runs) {
 
 const fmt = v => v.toLocaleString('en-US');
 let root = null;
+let act = null;
 let lastState = null;
 
-export function mount(el) {
+export function mount(el, actions) {
   root = el;
+  act = actions;
 
   root.addEventListener('click', async e => {
     const btn = e.target.closest('button');
     if (!btn) return;
 
     if (btn.dataset.edit) {
-      open(lastState.runs.find(r => r.id === btn.dataset.edit));
+      act.openEntry(lastState.runs.find(r => r.id === btn.dataset.edit));
       return;
     }
 
     if (btn.dataset.del) {
       const run = lastState.runs.find(r => r.id === btn.dataset.del);
       if (!confirm(`確定刪掉「${run.name}」？這個動作沒辦法復原。`)) return;
-      mutate(mine => mine.filter(r => r.id !== btn.dataset.del));
+      act.mutate(mine => mine.filter(r => r.id !== btn.dataset.del));
       return;
     }
 
@@ -2166,7 +2186,7 @@ export function mount(el) {
       const from = root.querySelector('#im-from').value.trim();
       try {
         const incoming = parseImport(text, whose, from);
-        mutate(mine => {
+        act.mutate(mine => {
           const ids = new Set(mine.map(r => r.id));
           const merged = [...mine];
           for (const run of incoming) {
@@ -2192,12 +2212,12 @@ export function update(state) {
   lastState = state;
   const rows = buildList(state.runs).map(r => `
     <li>
-      <div><b>${r.name}</b>${r.badge ? ` <em>${r.badge}</em>` : ''}
+      <div><b>${esc(r.name)}</b>${r.badge ? ` <em>${esc(r.badge)}</em>` : ''}
         <span class="num">${fmt(r.total)}</span></div>
-      ${r.note ? `<div class="sub">${r.note}</div>` : ''}
+      ${r.note ? `<div class="sub">${esc(r.note)}</div>` : ''}
       <div class="ops">
-        ${r.editable ? `<button data-edit="${r.id}">編輯</button>` : ''}
-        ${r.deletable ? `<button data-del="${r.id}" class="danger">刪除</button>` : ''}
+        ${r.editable ? `<button data-edit="${esc(r.id)}">編輯</button>` : ''}
+        ${r.deletable ? `<button data-del="${esc(r.id)}" class="danger">刪除</button>` : ''}
       </div>
     </li>`).join('');
 

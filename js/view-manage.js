@@ -1,0 +1,133 @@
+import { total } from './stats.js';
+import { exportText, parseImport } from './store.js';
+import { esc } from './esc.js';
+
+export function buildList(runs) {
+  return runs.map(r => ({
+    id: r.id,
+    name: r.name,
+    note: r.note || '',
+    total: total(r),
+    origin: r.origin,
+    badge: r.origin === 'builtin' ? '內建'
+         : r.origin === 'imported' ? `來自 ${r.from || '匿名'}`
+         : '',
+    editable: r.origin === 'mine',
+    deletable: r.origin !== 'builtin'
+  }));
+}
+
+const fmt = v => v.toLocaleString('en-US');
+let root = null;
+let act = null;
+let lastState = null;
+
+export function mount(el, actions) {
+  root = el;
+  act = actions;
+
+  root.addEventListener('click', async e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+
+    if (btn.dataset.edit) {
+      act.openEntry(lastState.runs.find(r => r.id === btn.dataset.edit));
+      return;
+    }
+
+    if (btn.dataset.del) {
+      const run = lastState.runs.find(r => r.id === btn.dataset.del);
+      if (!confirm(`確定刪掉「${run.name}」？這個動作沒辦法復原。`)) return;
+      act.mutate(mine => mine.filter(r => r.id !== btn.dataset.del));
+      return;
+    }
+
+    if (btn.id === 'ex-copy') {
+      await navigator.clipboard.writeText(exportText(lastState.runs));
+      btn.textContent = '已複製 ✓';
+      setTimeout(() => { btn.textContent = '複製到剪貼簿'; }, 2000);
+      return;
+    }
+
+    if (btn.id === 'ex-file') {
+      const blob = new Blob([exportText(lastState.runs)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `lv6-遺物紀錄-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      return;
+    }
+
+    if (btn.id === 'im-go') {
+      const raw = root.querySelector('#im-text').value;
+      const text = raw.trim();
+      const whose = root.querySelector('input[name="whose"]:checked').value;
+      const from = root.querySelector('#im-from').value.trim();
+      try {
+        const incoming = parseImport(text, whose, from);
+        const res = act.mutate(mine => {
+          const ids = new Set(mine.map(r => r.id));
+          const merged = [...mine];
+          for (const run of incoming) {
+            if (!ids.has(run.id)) { merged.push(run); continue; }
+            if (confirm(`「${run.name}」已經有一筆同 id 的資料。按確定覆蓋，按取消當成新的一趟。`)) {
+              merged[merged.findIndex(r => r.id === run.id)] = run;
+            } else {
+              merged.push({ ...run, id: run.id + '_new' });
+            }
+          }
+          return merged;
+        });
+        // act.mutate 內部已經觸發過一次整頁重繪（含這裡的 root.innerHTML），
+        // 所以下面查到的都是重繪後的新節點；存檔失敗時要把使用者貼的內容還回去，
+        // 不然他還得重新貼一次 JSON 才能重試。
+        if (res.ok) {
+          root.querySelector('#im-text').value = '';
+          root.querySelector('#im-msg').textContent = `匯入了 ${incoming.length} 趟。`;
+        } else {
+          root.querySelector('#im-text').value = raw;
+          root.querySelector('#im-msg').textContent = `匯入失敗：${res.error}`;
+        }
+      } catch (err) {
+        root.querySelector('#im-text').value = raw;
+        root.querySelector('#im-msg').textContent = `匯入失敗：${err.message}`;
+      }
+    }
+  });
+}
+
+export function update(state) {
+  lastState = state;
+  const rows = buildList(state.runs).map(r => `
+    <li>
+      <div><b>${esc(r.name)}</b>${r.badge ? ` <em>${esc(r.badge)}</em>` : ''}
+        <span class="num">${fmt(r.total)}</span></div>
+      ${r.note ? `<div class="sub">${esc(r.note)}</div>` : ''}
+      <div class="ops">
+        ${r.editable ? `<button data-edit="${esc(r.id)}">編輯</button>` : ''}
+        ${r.deletable ? `<button data-del="${esc(r.id)}" class="danger">刪除</button>` : ''}
+      </div>
+    </li>`).join('');
+
+  root.innerHTML = `
+    <h2>趟次</h2>
+    <ul class="runlist">${rows}</ul>
+
+    <h2>備份</h2>
+    <p class="sub">只會匯出你自己輸入的趟，不含內建與朋友的。</p>
+    <div class="ops">
+      <button id="ex-copy">複製到剪貼簿</button>
+      <button id="ex-file">下載 .json</button>
+    </div>
+
+    <h2>匯入</h2>
+    <textarea id="im-text" rows="4" placeholder="把匯出的 JSON 貼在這裡"></textarea>
+    <div class="whose">
+      <label><input type="radio" name="whose" value="mine" checked>我自己的（計入平均）</label>
+      <label><input type="radio" name="whose" value="imported">朋友的（只拿來比較）</label>
+      <input id="im-from" placeholder="朋友的名字">
+    </div>
+    <button id="im-go" class="primary">匯入</button>
+    <p id="im-msg" class="sub"></p>`;
+}
