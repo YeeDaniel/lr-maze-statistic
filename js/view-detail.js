@@ -1,6 +1,7 @@
 import { PROG, STAGE, BOSS_INDEX } from './config.js';
 import { total, subtotal } from './stats.js';
 import { decode } from './decode.js';
+import { esc } from './esc.js';
 
 export function buildRows(run, mean) {
   return run.cells.map((cell, i) => {
@@ -42,14 +43,14 @@ export function update(state) {
   if (!run) { root.innerHTML = ''; return; }
 
   const tabs = state.runs.map(r =>
-    `<button data-run="${r.id}" class="pick" aria-pressed="${r.id === picked}">${r.name}</button>`
+    `<button data-run="${esc(r.id)}" class="pick" aria-pressed="${r.id === picked}">${esc(r.name)}</button>`
   ).join('');
 
   const rows = buildRows(run, state.mean).map(r => `
     <tr class="${r.warn ? 'warn' : ''}">
       <td>${r.prog}</td>
       <td>${r.stage}</td>
-      <td>${r.target || ''}${r.relic}</td>
+      <td>${esc(r.target || '')}${r.relic}</td>
       <td class="num">${fmt(r.score)}</td>
       <td class="num">${signed(r.dev)}</td>
     </tr>`).join('');
@@ -57,7 +58,7 @@ export function update(state) {
   root.innerHTML = `
     <h2>每輪明細</h2>
     <div class="picks">${tabs}</div>
-    <p class="sub">${run.note || ''}　遺物小計 ${fmt(subtotal(run))}　總分 ${fmt(total(run))}</p>
+    <p class="sub">${esc(run.note || '')}　遺物小計 ${fmt(subtotal(run))}　總分 ${fmt(total(run))}</p>
     <table class="detail">
       <thead><tr><th>進度</th><th>關卡</th><th>遺物</th><th class="num">分數</th><th class="num">與平均</th></tr></thead>
       <tbody>${rows}</tbody>

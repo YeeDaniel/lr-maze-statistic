@@ -36,6 +36,12 @@ export function validate(data) {
   for (const run of data.runs) {
     const who = run && run.name ? `「${run.name}」` : '某一趟';
     if (!run || typeof run !== 'object') throw new Error(`${who} 不是物件`);
+    // id / name / note 會被塞進畫面（見 view-detail.js），匯入的 JSON 不可信，
+    // 型別檢查是防止非字串（物件、含跳脫字元的怪東西）混進去的第二道防線。
+    if (typeof run.id !== 'string') throw new Error(`${who} 的 id 不是字串`);
+    if (typeof run.name !== 'string') throw new Error(`${who} 的 name 不是字串`);
+    if (run.note !== undefined && typeof run.note !== 'string')
+      throw new Error(`${who} 的 note 不是字串`);
     if (!Array.isArray(run.cells) || run.cells.length !== CELLS)
       throw new Error(`${who} 應該有 ${CELLS} 格，實得 ${run.cells ? run.cells.length : 0} 格`);
     run.cells.forEach((cell, i) => {
