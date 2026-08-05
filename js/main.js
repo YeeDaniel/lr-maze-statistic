@@ -1,6 +1,7 @@
 import { BASELINE } from './baseline.js';
 import * as store from './store.js';
 import { meanBasis, meanByCheckpoint } from './stats.js';
+import * as viewChart from './view-chart.js';
 
 /** localStorage 被禁時退回記憶體，功能照常，只是關掉就沒了 */
 function pickStorage() {
@@ -105,6 +106,8 @@ document.getElementById('modes').addEventListener('click', e => {
     b.setAttribute('aria-pressed', String(b === btn));
   setMode(btn.dataset.m);
 });
+
+register(viewChart, document.getElementById('c'));
 
 recompute();
 render();
