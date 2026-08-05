@@ -82,6 +82,10 @@ function render() {
 /**
  * 改資料的唯一入口。fn 收到目前使用者自己的趟數（不含 builtin），
  * 回傳新的陣列；存檔後重算並重繪。
+ *
+ * 回傳 store.save 的結果 { ok, error }，讓呼叫端（view-entry / view-manage）
+ * 知道存檔到底成不成功 —— 失敗時使用者輸入的表單或草稿不該被清掉，
+ * 不然橫幅叫他去匯出備份時，備份的東西已經被清空的表單/草稿帶走了。
  */
 export function mutate(fn) {
   const mine = state.runs.filter(r => r.origin !== 'builtin');
@@ -90,6 +94,7 @@ export function mutate(fn) {
   recompute();                                  // recompute 會重設 state.warning
   if (!res.ok) state.warning = res.error;       // 所以存檔失敗的訊息要在之後才蓋上去
   render();
+  return res;
 }
 
 export function setMode(m) { state.mode = m; render(); }

@@ -60,12 +60,13 @@ export function mount(el, actions) {
     }
 
     if (btn.id === 'im-go') {
-      const text = root.querySelector('#im-text').value.trim();
+      const raw = root.querySelector('#im-text').value;
+      const text = raw.trim();
       const whose = root.querySelector('input[name="whose"]:checked').value;
       const from = root.querySelector('#im-from').value.trim();
       try {
         const incoming = parseImport(text, whose, from);
-        act.mutate(mine => {
+        const res = act.mutate(mine => {
           const ids = new Set(mine.map(r => r.id));
           const merged = [...mine];
           for (const run of incoming) {
@@ -78,9 +79,18 @@ export function mount(el, actions) {
           }
           return merged;
         });
-        root.querySelector('#im-text').value = '';
-        root.querySelector('#im-msg').textContent = `匯入了 ${incoming.length} 趟。`;
+        // act.mutate 內部已經觸發過一次整頁重繪（含這裡的 root.innerHTML），
+        // 所以下面查到的都是重繪後的新節點；存檔失敗時要把使用者貼的內容還回去，
+        // 不然他還得重新貼一次 JSON 才能重試。
+        if (res.ok) {
+          root.querySelector('#im-text').value = '';
+          root.querySelector('#im-msg').textContent = `匯入了 ${incoming.length} 趟。`;
+        } else {
+          root.querySelector('#im-text').value = raw;
+          root.querySelector('#im-msg').textContent = `匯入失敗：${res.error}`;
+        }
       } catch (err) {
+        root.querySelector('#im-text').value = raw;
         root.querySelector('#im-msg').textContent = `匯入失敗：${err.message}`;
       }
     }

@@ -108,11 +108,14 @@ function clearDraft() {
 
 function commit() {
   const run = editing;
-  act.mutate(mine => {
+  const res = act.mutate(mine => {
     const idx = mine.findIndex(r => r.id === run.id);
     if (idx >= 0) { const copy = [...mine]; copy[idx] = run; return copy; }
     return [...mine, run];
   });
+  // 存檔失敗就不能清表單/草稿 —— 那是使用者唯一還留著的一份資料，
+  // 橫幅會叫他去匯出備份，備份的東西不能在這裡先被清掉。
+  if (!res.ok) return;
   editing = null;
   clearDraft();
   render();
