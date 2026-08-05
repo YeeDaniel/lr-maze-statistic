@@ -2,6 +2,7 @@ import { BASELINE } from './baseline.js';
 import * as store from './store.js';
 import { meanBasis, meanByCheckpoint } from './stats.js';
 import * as viewChart from './view-chart.js';
+import * as viewDetail from './view-detail.js';
 
 /** localStorage 被禁時退回記憶體，功能照常，只是關掉就沒了 */
 function pickStorage() {
@@ -108,6 +109,7 @@ document.getElementById('modes').addEventListener('click', e => {
 });
 
 register(viewChart, document.getElementById('c'));
+register(viewDetail, document.getElementById('detail'));
 
 recompute();
 render();
