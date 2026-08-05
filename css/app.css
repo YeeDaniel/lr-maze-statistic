@@ -76,3 +76,41 @@ h1{font-size:21px;font-weight:600;margin:0;letter-spacing:.01em}
      border-radius:50%;box-sizing:border-box;cursor:pointer}
 .prange{display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);
         font-family:var(--mono);font-variant-numeric:tabular-nums;margin-top:6px}
+
+/* ── 輸入表單 ── */
+.entry label { display:block; margin:10px 0 }
+.entry label input { display:block; width:100%; margin-top:4px }
+.entry input, .entry textarea {
+  padding:10px; font:inherit; color:var(--ink);
+  background:transparent; border:1px solid var(--line); border-radius:8px;
+}
+.cells { display:grid; gap:12px; margin:16px 0 }
+.cell {
+  padding:12px; border:1px solid var(--line); border-radius:10px;
+  display:grid; gap:8px;
+}
+.cell.warn { border-color:#d64545 }
+.cell.locked { opacity:.55 }
+.cellhead { display:flex; gap:8px; align-items:baseline }
+.cellhead b { font-size:15px }
+.cellhead span { color:var(--ink3); font-size:13px }
+.cell input { width:100%; font-size:17px }  /* ≥16px 才不會讓 iOS 自動放大 */
+.badge { color:var(--ink2); font-size:13px; min-height:1.2em }
+.cellwarn { color:#d64545; font-size:13px }
+.chips { display:flex; flex-wrap:wrap; gap:8px }
+.chips button {
+  min-width:44px; min-height:44px; padding:0 14px;
+  font:inherit; color:var(--ink); cursor:pointer;
+  background:transparent; border:1px solid var(--line); border-radius:22px;
+}
+.chips button[aria-pressed="true"] { background:var(--ink); color:var(--bg); border-color:var(--ink) }
+.entryfoot { display:flex; gap:10px; position:sticky; bottom:0; padding:12px 0; background:var(--bg) }
+button.primary { background:var(--ink); color:var(--bg); border:0 }
+.entryfoot button { min-height:44px; padding:0 20px; border-radius:8px; font:inherit; cursor:pointer }
+
+@media (min-width:720px) {
+  .cell { grid-template-columns:120px 110px 150px 1fr; align-items:center; gap:12px }
+  .cellhead { flex-direction:column; gap:0 }
+  .badge, .chips { margin:0 }
+  .cellwarn { grid-column:1 / -1 }
+}

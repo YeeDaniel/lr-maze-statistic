@@ -4,6 +4,7 @@ import { meanBasis, meanByCheckpoint } from './stats.js';
 import * as viewChart from './view-chart.js';
 import * as viewDetail from './view-detail.js';
 import * as viewDist from './view-dist.js';
+import * as viewEntry from './view-entry.js';
 
 /** localStorage 被禁時退回記憶體，功能照常，只是關掉就沒了 */
 function pickStorage() {
@@ -112,6 +113,8 @@ document.getElementById('modes').addEventListener('click', e => {
 register(viewChart, document.getElementById('c'));
 register(viewDetail, document.getElementById('detail'));
 register(viewDist, document.getElementById('dist'));
+actions.openEntry = viewEntry.open;   // Task 5 先留 null，這裡才填上
+register(viewEntry, document.getElementById('entry'));
 
 recompute();
 render();
