@@ -115,6 +115,14 @@ button.primary { background:var(--ink); color:var(--bg); border:0 }
   .cellwarn { grid-column:1 / -1 }
 }
 
+/* <720px 時每格是直向堆疊（label→input→badge→chips），填完分數新長出的
+   badge/chips 常常剛好落在畫面最下面 —— 跟固定在視窗底部的 sticky 工具列
+   打架，量到的是「chip 點不到、點到存檔」。窄螢幕乾脆不要 sticky，工具列
+   跟著內容一起捲動，永遠在原本的版面位置，不會蓋住任何東西。 */
+@media (max-width:719px) {
+  .entryfoot { position:static; }
+}
+
 /* ── 趟次管理 ── */
 .runlist { list-style:none; padding:0; margin:12px 0; display:grid; gap:10px }
 .runlist li { padding:12px; border:1px solid var(--line); border-radius:10px }
