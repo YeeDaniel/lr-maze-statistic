@@ -118,7 +118,10 @@ function commit() {
   if (!res.ok) return;
   editing = null;
   clearDraft();
-  render();
+  // 存好了就把人送去統計分頁，讓他馬上看到自己那條線。
+  // setTab 內部會 render()，所以這裡不用再叫一次。
+  // 失敗時（上面已經 return）不切 —— 橫幅在原本那頁，切走就看不到了。
+  act.setTab('stats');
 }
 
 let lastState = null;

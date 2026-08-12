@@ -43,7 +43,8 @@ const actions = {
   mutate,                  // function 宣告會提升，這裡取得到
   rerender: () => render(),
   openEntry: null,         // Task 9 註冊 view-entry 時填入
-  toggleRun                // 給 view-runs 用，切換某趟在圖表/分布圖裡的顯示與否
+  toggleRun,               // 給 view-runs 用，切換某趟在圖表/分布圖裡的顯示與否
+  setTab                   // 給 view-entry 用，存檔成功後把使用者送去看圖
 };
 
 /** 已註冊的視圖。每個都要有 mount(el, actions) 與 update(state) */
