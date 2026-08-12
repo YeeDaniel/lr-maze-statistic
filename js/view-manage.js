@@ -9,9 +9,7 @@ export function buildList(runs) {
     note: r.note || '',
     total: total(r),
     origin: r.origin,
-    badge: r.origin === 'builtin' ? '內建'
-         : r.origin === 'imported' ? `來自 ${r.from || '匿名'}`
-         : '',
+    badge: r.origin === 'builtin' ? '內建' : '',
     editable: r.origin === 'mine',
     deletable: r.origin !== 'builtin'
   }));
