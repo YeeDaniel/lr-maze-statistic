@@ -179,8 +179,11 @@ button.primary:hover { opacity:.88 }
 .ops button.danger { color:#d64545; border-color:#d64545 }
 #im-text { width:100%; padding:10px; font:inherit; color:var(--ink);
            background:transparent; border:1px solid var(--line); border-radius:8px }
-.whose { display:grid; gap:8px; margin:10px 0 }
-.whose label { display:flex; gap:8px; align-items:center; min-height:44px }
-#im-from { padding:10px; font:inherit; color:var(--ink);
-           background:transparent; border:1px solid var(--line); border-radius:8px }
 #im-go { min-height:44px; padding:0 20px; border-radius:8px; font:inherit; cursor:pointer }
+
+/* 備份／還原：預設收合的進階區 */
+.backup { margin-top:30px; padding:0 12px 12px;
+          border:1px solid var(--line); border-radius:10px }
+.backup summary { min-height:44px; display:flex; align-items:center; cursor:pointer;
+                  font-size:16px; font-weight:600; margin:0 -12px; padding:0 12px }
+.backup[open] summary { border-bottom:1px solid var(--line); margin-bottom:12px }

@@ -19,10 +19,16 @@ const fmt = v => v.toLocaleString('en-US');
 let root = null;
 let act = null;
 let lastState = null;
+let backupOpen = false;   // <details> 展開與否。整頁重繪會換掉 DOM，狀態得自己記
 
 export function mount(el, actions) {
   root = el;
   act = actions;
+
+  // toggle 不冒泡，只能用 capture 攔
+  root.addEventListener('toggle', e => {
+    if (e.target.matches('details.backup')) backupOpen = e.target.open;
+  }, true);
 
   root.addEventListener('click', async e => {
     const btn = e.target.closest('button');
@@ -43,7 +49,7 @@ export function mount(el, actions) {
     if (btn.id === 'ex-copy') {
       await navigator.clipboard.writeText(exportText(lastState.runs));
       btn.textContent = '已複製 ✓';
-      setTimeout(() => { btn.textContent = '複製到剪貼簿'; }, 2000);
+      setTimeout(() => { btn.textContent = '複製備份內容'; }, 2000);
       return;
     }
 
@@ -60,10 +66,8 @@ export function mount(el, actions) {
     if (btn.id === 'im-go') {
       const raw = root.querySelector('#im-text').value;
       const text = raw.trim();
-      const whose = root.querySelector('input[name="whose"]:checked').value;
-      const from = root.querySelector('#im-from').value.trim();
       try {
-        const incoming = parseImport(text, whose, from);
+        const incoming = parseImport(text);
         const res = act.mutate(mine => {
           const ids = new Set(mine.map(r => r.id));
           const merged = [...mine];
@@ -82,14 +86,14 @@ export function mount(el, actions) {
         // 不然他還得重新貼一次 JSON 才能重試。
         if (res.ok) {
           root.querySelector('#im-text').value = '';
-          root.querySelector('#im-msg').textContent = `匯入了 ${incoming.length} 趟。`;
+          root.querySelector('#im-msg').textContent = `還原了 ${incoming.length} 趟。`;
         } else {
           root.querySelector('#im-text').value = raw;
-          root.querySelector('#im-msg').textContent = `匯入失敗：${res.error}`;
+          root.querySelector('#im-msg').textContent = `還原失敗：${res.error}`;
         }
       } catch (err) {
         root.querySelector('#im-text').value = raw;
-        root.querySelector('#im-msg').textContent = `匯入失敗：${err.message}`;
+        root.querySelector('#im-msg').textContent = `還原失敗：${err.message}`;
       }
     }
   });
@@ -112,20 +116,16 @@ export function update(state) {
     <h2>趟次</h2>
     <ul class="runlist">${rows}</ul>
 
-    <h2>備份</h2>
-    <p class="sub">只會匯出你自己輸入的趟，不含內建與朋友的。</p>
-    <div class="ops">
-      <button id="ex-copy">複製到剪貼簿</button>
-      <button id="ex-file">下載 .json</button>
-    </div>
-
-    <h2>匯入</h2>
-    <textarea id="im-text" rows="4" placeholder="把匯出的 JSON 貼在這裡"></textarea>
-    <div class="whose">
-      <label><input type="radio" name="whose" value="mine" checked>我自己的（計入平均）</label>
-      <label><input type="radio" name="whose" value="imported">朋友的（只拿來比較）</label>
-      <input id="im-from" placeholder="朋友的名字">
-    </div>
-    <button id="im-go" class="primary">匯入</button>
-    <p id="im-msg" class="sub"></p>`;
+    <details class="backup"${backupOpen ? ' open' : ''}>
+      <summary>進階：備份與還原</summary>
+      <p class="sub">換手機、或要清瀏覽器資料之前，先下載一份備份。備份只含你自己輸入的趟。</p>
+      <div class="ops">
+        <button id="ex-copy">複製備份內容</button>
+        <button id="ex-file">下載備份檔（.json）</button>
+      </div>
+      <p class="sub">還原：把備份的內容貼在下面，按「還原」。</p>
+      <textarea id="im-text" rows="4" placeholder="把備份的內容貼在這裡"></textarea>
+      <button id="im-go" class="primary">還原</button>
+      <p id="im-msg" class="sub"></p>
+    </details>`;
 }
