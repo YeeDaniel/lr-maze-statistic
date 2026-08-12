@@ -8,7 +8,7 @@ export const total = run => (subtotal(run) + BONUS) * MULT;
 
 /**
  * 平均基準：自己的趟數滿 2 趟才用自己的，否則退回內建 6 趟。
- * imported（朋友的）永不計入。
+ * origin 只有 builtin 與 mine 兩種，內建的不計入自己的平均。
  */
 export function meanBasis(runs) {
   const mine = runs.filter(r => r.origin === 'mine');
