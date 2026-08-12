@@ -184,6 +184,11 @@ button.primary:hover { opacity:.88 }
 /* 備份／還原：預設收合的進階區 */
 .backup { margin-top:30px; padding:0 12px 12px;
           border:1px solid var(--line); border-radius:10px }
-.backup summary { min-height:44px; display:flex; align-items:center; cursor:pointer;
+/* display:flex 會讓 summary 不再是 list-item，瀏覽器預設的展開三角形（::marker）
+   就消失了，收合時看不出這行可以點。版面要 flex，三角形只好自己畫。 */
+.backup summary { min-height:44px; display:flex; align-items:center; gap:8px; cursor:pointer;
                   font-size:16px; font-weight:600; margin:0 -12px; padding:0 12px }
+.backup summary::before { content:'▸'; color:var(--ink3); font-size:12px }
+.backup[open] summary::before { content:'▾' }
 .backup[open] summary { border-bottom:1px solid var(--line); margin-bottom:12px }
+.backup:not([open]) { padding-bottom:0 }

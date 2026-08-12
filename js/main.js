@@ -32,7 +32,8 @@ const state = {
   tab: 'stats',
   mean: [],
   meanSource: 'builtin',
-  warning: storageWarning
+  warning: storageWarning,
+  loadFailed: false   // 存檔讀不出來／版本比程式新。跟 storageWarning 是兩回事
 };
 
 /**
@@ -57,6 +58,7 @@ export function register(view, el) {
 function recompute() {
   const loaded = store.load(storage);
   state.warning = storageWarning || loaded.warning;
+  state.loadFailed = !!loaded.warning;
   state.runs = [...BASELINE, ...loaded.runs];
   const basis = meanBasis(state.runs);
   state.mean = meanByCheckpoint(basis.runs);
@@ -131,7 +133,9 @@ recompute();
 
 // 一趟都還沒有的新使用者：直接落在輸入頁，表單展開，不用自己找入口。
 // 只在開機跑一次 —— 放進 render() 的話，使用者按「取消」會被立刻強制重開。
-const noRunsYet = state.runs.every(r => r.origin === 'builtin');
+// 存檔讀不出來時 runs 也是空的，但那不是新使用者 —— 舊資料還在，只是這次沒讀成。
+// 這時候開表單，使用者填一填按存檔就會把原本那份蓋掉，所以讀失敗就不自動開。
+const noRunsYet = !state.loadFailed && state.runs.every(r => r.origin === 'builtin');
 if (noRunsYet) {
   state.tab = 'manage';
   // 有草稿就交給 view-entry 自己撿回來，別用空白表單蓋掉
