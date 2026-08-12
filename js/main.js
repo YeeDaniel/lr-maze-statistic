@@ -127,4 +127,15 @@ actions.openEntry = viewEntry.open;   // Task 5 先留 null，這裡才填上
 register(viewEntry, document.getElementById('entry'));
 
 recompute();
+
+// 一趟都還沒有的新使用者：直接落在輸入頁，表單展開，不用自己找入口。
+// 只在開機跑一次 —— 放進 render() 的話，使用者按「取消」會被立刻強制重開。
+const noRunsYet = state.runs.every(r => r.origin === 'builtin');
+if (noRunsYet) {
+  state.tab = 'manage';
+  // 有草稿就交給 view-entry 自己撿回來，別用空白表單蓋掉
+  const hasDraft = !!storage.getItem(store.DRAFT_KEY);
+  if (!hasDraft) viewEntry.open(store.blankRun(viewEntry.nextRunName(state.runs)));
+}
+
 render();
