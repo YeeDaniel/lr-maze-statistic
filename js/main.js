@@ -138,8 +138,11 @@ recompute();
 const noRunsYet = !state.loadFailed && state.runs.every(r => r.origin === 'builtin');
 if (noRunsYet) {
   state.tab = 'manage';
-  // 有草稿就交給 view-entry 自己撿回來，別用空白表單蓋掉
-  const hasDraft = !!storage.getItem(store.DRAFT_KEY);
+  // 有草稿就交給 view-entry 自己撿回來，別用空白表單蓋掉。
+  // 這裡直接讀 localStorage 而不是注入的 storage —— view-entry 存草稿也是直接寫
+  // localStorage，兩邊得看同一個地方，不然 storage 退回記憶體時會判成沒草稿。
+  let hasDraft = false;
+  try { hasDraft = !!localStorage.getItem(store.DRAFT_KEY); } catch { /* 讀不到就當沒有 */ }
   if (!hasDraft) viewEntry.open(store.blankRun(viewEntry.nextRunName(state.runs)));
 }
 

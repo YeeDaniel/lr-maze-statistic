@@ -20,7 +20,7 @@ LINE Rangers 遺跡 LV6 的遺物分數紀錄與分析工具。玩家每趟會�
 | `js/esc.js` | HTML 跳脫工具，使用者可控文字內插前一律經過這裡 |
 | `js/decode.js` | 分數反推級距/正負/類型或屬性/候選遺物 |
 | `js/stats.js` | 純函式統計 |
-| `js/store.js` | localStorage 讀寫、驗證、匯出匯入 |
+| `js/store.js` | localStorage 讀寫、驗證、備份還原 |
 | `js/view-chart.js` / `view-detail.js` / `view-dist.js` / `view-entry.js` / `view-manage.js` | 各分頁的畫面模組 |
 | `js/main.js` | state 調度，串起各 view 模組 |
 | `vendor/chart.umd.js` | Chart.js，本地 vendor 檔 |

@@ -79,6 +79,9 @@ test('匯入一律標成自己的', () => {
   eq(got.length, 1);
   eq(got[0].origin, 'mine');
   eq(got[0].from, undefined);
+  // parseImport 用 rest spread 重建物件，掉欄位不會有別的測試抓到
+  eq(got[0].name, '備份裡的一趟');
+  eq(got[0].cells.length, CELLS);
 });
 
 test('匯入舊版朋友資料也轉成自己的', () => {

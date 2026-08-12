@@ -47,12 +47,12 @@ js/baseline.js        作者 6 趟，唯讀基準線
 js/esc.js             HTML 跳脫工具
 js/decode.js          分數反推級距/正負/類型或屬性/候選遺物
 js/stats.js           純函式統計
-js/store.js           localStorage 讀寫、驗證、匯出匯入
+js/store.js           localStorage 讀寫、驗證、備份還原
 js/view-chart.js      折線圖
 js/view-detail.js     每輪明細表
 js/view-dist.js       分數分布
 js/view-entry.js      輸入表單
-js/view-manage.js     趟次管理與匯出匯入
+js/view-manage.js     趟次管理與備份還原
 js/main.js            state 調度
 vendor/chart.umd.js
 tests/harness.mjs     極簡斷言工具

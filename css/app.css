@@ -163,8 +163,7 @@ button.primary:hover { opacity:.88 }
 }
 
 /* ── 趟次管理 ── */
-#manage h2 { font-size:16px; font-weight:600; margin:30px 0 4px }
-#manage h2:first-child { margin-top:24px }
+#manage h2 { font-size:16px; font-weight:600; margin:24px 0 4px }
 .runlist { list-style:none; padding:0; margin:12px 0; display:grid; gap:10px }
 .runlist li { padding:12px; border:1px solid var(--line); border-radius:10px }
 .runlist li > div:first-child { display:flex; gap:8px; align-items:baseline; flex-wrap:wrap }

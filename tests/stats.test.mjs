@@ -43,12 +43,12 @@ test('自己的趟數滿 2 趟才當平均基準', () => {
   eq(meanBasis([...b, mkRun('a', flat(1)), mkRun('b', flat(3))]).source, 'mine');
 });
 
-test('imported 不計入平均基準', () => {
+test('不認得的 origin 不計入平均基準', () => {
   const runs = [...BASELINE,
     mkRun('a', flat(1)),
-    mkRun('friend1', flat(9), 'imported'),
-    mkRun('friend2', flat(9), 'imported')];
-  eq(meanBasis(runs).source, 'builtin', 'imported 不該讓基準切到 mine');
+    mkRun('x1', flat(9), 'weird'),
+    mkRun('x2', flat(9), 'weird')];
+  eq(meanBasis(runs).source, 'builtin', '只有 mine 算數，其他 origin 不該讓基準切過去');
 });
 
 test('meanBasis 只回傳選中的來源', () => {

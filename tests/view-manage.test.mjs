@@ -23,12 +23,12 @@ test('自己的可編輯可刪', () => {
   eq(row.badge, '');
 });
 
-test('還原進來的趟沒有來源徽章', () => {
-  const restored = { ...blankRun('還原的一趟'), origin: 'mine' };
-  const row = buildList([restored])[0];
+// 舊存檔裡的 imported 由 store.load 轉成 mine，但萬一有漏網的，列表也不該長出徽章
+test('舊版的 imported 也不長來源徽章', () => {
+  const stale = { ...blankRun('舊朋友'), origin: 'imported', from: '朋友A' };
+  const row = buildList([stale])[0];
   eq(row.badge, '', '不該再出現「來自 XXX」');
-  eq(row.editable, true);
-  eq(row.deletable, true);
+  eq(row.deletable, true, '刪得掉，不然使用者救不了自己');
 });
 
 test('總分算進去', () => {
