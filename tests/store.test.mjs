@@ -67,30 +67,46 @@ test('validate 擋掉非數字分數', () => {
 });
 
 test('匯出只含自己的趟', () => {
-  const runs = [mkRun('我的'), mkRun('朋友的', 'imported')];
+  const runs = [mkRun('我的'), mkRun('內建的', 'builtin')];
   const out = JSON.parse(exportText(runs));
   eq(out.runs.map(r => r.name), ['我的']);
   eq(out.v, SCHEMA);
 });
 
-test('匯入標成 imported 並記來源', () => {
-  const text = exportText([mkRun('他的一趟')]);
-  const got = parseImport(text, 'imported', '朋友A');
+test('匯入一律標成自己的', () => {
+  const text = exportText([mkRun('備份裡的一趟')]);
+  const got = parseImport(text);
   eq(got.length, 1);
-  eq(got[0].origin, 'imported');
-  eq(got[0].from, '朋友A');
-});
-
-test('匯入自己的資料不帶 from', () => {
-  const text = exportText([mkRun('備份')]);
-  const got = parseImport(text, 'mine');
   eq(got[0].origin, 'mine');
   eq(got[0].from, undefined);
 });
 
+test('匯入舊版朋友資料也轉成自己的', () => {
+  const text = JSON.stringify({
+    v: SCHEMA,
+    runs: [{ ...blankRun('舊朋友'), origin: 'imported', from: '朋友A' }]
+  });
+  const got = parseImport(text);
+  eq(got[0].origin, 'mine');
+  eq(got[0].from, undefined, 'from 應該整個拿掉，不是留 undefined 值');
+  ok(!('from' in got[0]), 'from 這個 key 不該還在');
+});
+
+test('讀舊存檔時 imported 當成自己的', () => {
+  const s = memoryStorage();
+  s.setItem(KEY, JSON.stringify({
+    v: SCHEMA,
+    runs: [{ ...blankRun('舊朋友'), origin: 'imported', from: '朋友A' }]
+  }));
+  const res = load(s);
+  eq(res.warning, null);
+  eq(res.runs[0].origin, 'mine');
+  ok(!('from' in res.runs[0]), 'from 這個 key 不該還在');
+});
+
 test('匯入壞資料時 throw 中文訊息', () => {
   let threw = null;
-  try { parseImport('不是 JSON', 'mine'); } catch (e) { threw = e.message; }
+  try { parseImport('不是備份內容'); } catch (e) { threw = e.message; }
   ok(threw, '應該要 throw');
   ok(threw.includes('格式'), `訊息應提到格式，實得：${threw}`);
 });

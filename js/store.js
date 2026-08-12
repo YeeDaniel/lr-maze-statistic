@@ -51,6 +51,13 @@ export function validate(data) {
   }
 }
 
+/** 舊版把別人的紀錄標成 imported 並記 from，現在只剩 builtin 與 mine */
+function stripImported(run) {
+  if (run.origin !== 'imported') return run;
+  const { from, ...rest } = run;
+  return { ...rest, origin: 'mine' };
+}
+
 export function load(storage) {
   const text = storage.getItem(KEY);
   if (!text) return { runs: [], warning: null };
@@ -70,7 +77,8 @@ export function load(storage) {
   if (data.v > SCHEMA) {
     return { runs: [], warning: '這份存檔的版本比目前的程式新，請重新整理取得新版後再試。' };
   }
-  return { runs: data.runs, warning: null };
+  // origin: 'imported'（舊版的「朋友的紀錄」）已經廢掉，讀到就當成自己的
+  return { runs: data.runs.map(stripImported), warning: null };
 }
 
 export function save(storage, runs) {
@@ -90,20 +98,19 @@ export function exportText(runs) {
   );
 }
 
-export function parseImport(text, origin, from) {
+export function parseImport(text) {
   let data;
   try {
     data = JSON.parse(text);
   } catch {
-    throw new Error('資料格式不對，這不是有效的 JSON');
+    throw new Error('資料格式不對，這不是一份備份內容');
   }
   validate(data);
   if (data.v > SCHEMA) throw new Error('這份資料的版本比目前的程式新，請先更新頁面');
 
+  // 還原進來的一律算自己的，沒有「別人的紀錄」這種東西了
   return data.runs.map(run => {
-    const copy = { ...run, origin };
-    if (origin === 'imported') copy.from = from || '匿名';
-    else delete copy.from;
-    return copy;
+    const { from, ...rest } = run;
+    return { ...rest, origin: 'mine' };
   });
 }
