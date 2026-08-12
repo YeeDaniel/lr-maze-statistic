@@ -21,6 +21,23 @@ export function buildRows(state) {
   }));
 }
 
+/**
+ * 內建 6 趟的整批開關。純函式。
+ * 沒有內建可藏就回 null（使用者的圖上只有自己的線，開關沒有意義）。
+ * shown 看的是「圖上還有沒有內建的線」而不是某個旗標 —— 使用者可能單獨點開了其中一條，
+ * 這時按鈕該給的是「全部收起來」。
+ */
+export function buildBuiltinToggle(state) {
+  const builtin = state.runs.filter(r => r.origin === 'builtin');
+  if (!builtin.length) return null;
+  const shown = builtin.some(r => state.visible.has(r.id));
+  return {
+    count: builtin.length,
+    shown,
+    label: `${shown ? '隱藏' : '顯示'}內建 ${builtin.length} 趟`
+  };
+}
+
 const fmt = v => v.toLocaleString('en-US');
 let root = null;
 let act = null;
@@ -29,6 +46,7 @@ export function mount(el, actions) {
   root = el;
   act = actions;
   root.addEventListener('click', e => {
+    if (e.target.closest('#builtin-toggle')) { act.toggleBuiltin(); return; }
     const btn = e.target.closest('.run');
     if (!btn) return;
     act.toggleRun(btn.dataset.id);
@@ -48,5 +66,11 @@ function renderRow(r) {
 }
 
 export function update(state) {
-  root.innerHTML = buildRows(state).map(renderRow).join('');
+  const t = buildBuiltinToggle(state);
+  // label 由上面的常數字串組成，不含使用者輸入
+  const head = t
+    ? `<div class="runhead"><button type="button" id="builtin-toggle"
+         aria-pressed="${!t.shown}">${t.label}</button></div>`
+    : '';
+  root.innerHTML = head + buildRows(state).map(renderRow).join('');
 }

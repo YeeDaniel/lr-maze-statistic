@@ -3,7 +3,27 @@ import { CELLS } from './config.js';
 export const KEY = 'lr-maze-lv6/v1';
 export const DRAFT_KEY = 'lr-maze-lv6/draft';
 export const BROKEN_KEY = 'lr-maze-lv6/v1.broken';
+export const VIEW_KEY = 'lr-maze-lv6/view';
 export const SCHEMA = 1;
+
+/**
+ * 看圖的偏好（目前只有「內建基準線收不收起來」），跟紀錄本身分開存。
+ * 這東西壞掉或存不進去都只是圖上多幾條線，絕對不能連累到紀錄，所以自己吞掉錯誤。
+ */
+export function loadView(storage) {
+  try {
+    const data = JSON.parse(storage.getItem(VIEW_KEY) || '{}');
+    return { hideBuiltin: data.hideBuiltin === true };
+  } catch {
+    return { hideBuiltin: false };
+  }
+}
+
+export function saveView(storage, view) {
+  try {
+    storage.setItem(VIEW_KEY, JSON.stringify({ hideBuiltin: !!view.hideBuiltin }));
+  } catch { /* 存不了就只有這次有效 */ }
+}
 
 /** localStorage 被禁（無痕模式）時的替身，也給測試用 */
 export function memoryStorage() {

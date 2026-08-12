@@ -19,6 +19,13 @@ h1{font-size:21px;font-weight:600;margin:0;letter-spacing:.01em}
 .basis{font-size:12px;color:var(--ink3);margin:0 0 12px}
 
 .runs{margin:28px 0 0;border-top:1px solid var(--line)}
+/* 內建 6 趟的整批開關。靠右擺，不跟下面每一列的趟次名稱搶視線 */
+.runhead{display:flex;justify-content:flex-end;padding:8px 0 0}
+.runhead button{font:inherit;font-size:12px;min-height:44px;padding:0 12px;
+                background:none;border:0;color:var(--ink3);cursor:pointer}
+.runhead button:hover{color:var(--ink2)}
+.runhead button[aria-pressed=true]{color:var(--ink2)}
+.runhead button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .run{display:grid;grid-template-columns:26px 1fr auto 110px;align-items:center;gap:14px;
      width:100%;padding:11px 4px;background:none;border:none;border-bottom:1px solid var(--line);
      color:inherit;font:inherit;text-align:left;cursor:pointer}

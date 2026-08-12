@@ -33,7 +33,8 @@ const state = {
   mean: [],
   meanSource: 'builtin',
   warning: storageWarning,
-  loadFailed: false   // 存檔讀不出來／版本比程式新。跟 storageWarning 是兩回事
+  loadFailed: false,  // 存檔讀不出來／版本比程式新。跟 storageWarning 是兩回事
+  hideBuiltin: store.loadView(storage).hideBuiltin
 };
 
 /**
@@ -45,6 +46,7 @@ const actions = {
   rerender: () => render(),
   openEntry: null,         // Task 9 註冊 view-entry 時填入
   toggleRun,               // 給 view-runs 用，切換某趟在圖表/分布圖裡的顯示與否
+  toggleBuiltin,           // 同上，但一次收起／攤開內建那 6 趟
   setTab                   // 給 view-entry 用，存檔成功後把使用者送去看圖
 };
 
@@ -63,7 +65,12 @@ function recompute() {
   const basis = meanBasis(state.runs);
   state.mean = meanByCheckpoint(basis.runs);
   state.meanSource = basis.source;
-  for (const r of state.runs) if (!state.visible.has(r.id)) state.visible.add(r.id);
+  // 新出現的趟預設顯示。內建那 6 趟例外 —— 使用者收起來過就別自己跑回來
+  for (const r of state.runs) {
+    if (state.visible.has(r.id)) continue;
+    if (state.hideBuiltin && r.origin === 'builtin') continue;
+    state.visible.add(r.id);
+  }
 }
 
 function render() {
@@ -106,6 +113,20 @@ export function setMode(m) { state.mode = m; render(); }
 export function setTab(t) { state.tab = t; render(); }
 export function toggleRun(id) {
   state.visible.has(id) ? state.visible.delete(id) : state.visible.add(id);
+  render();
+}
+
+/**
+ * 內建 6 趟一次收起／攤開。判斷依據是「圖上還有沒有內建的線」，
+ * 跟 view-runs 的按鈕文字同一套規則，按下去才會是使用者看到的那件事。
+ */
+export function toggleBuiltin() {
+  const builtin = state.runs.filter(r => r.origin === 'builtin');
+  state.hideBuiltin = builtin.some(r => state.visible.has(r.id));
+  for (const r of builtin) {
+    state.hideBuiltin ? state.visible.delete(r.id) : state.visible.add(r.id);
+  }
+  store.saveView(storage, state);
   render();
 }
 

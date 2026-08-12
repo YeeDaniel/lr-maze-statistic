@@ -1,7 +1,7 @@
 import { test, ok, eq } from './harness.mjs';
 import { CELLS } from '../js/config.js';
-import { KEY, BROKEN_KEY, SCHEMA, blankRun, validate, load, save,
-         exportText, parseImport, memoryStorage } from '../js/store.js';
+import { KEY, BROKEN_KEY, VIEW_KEY, SCHEMA, blankRun, validate, load, save,
+         exportText, parseImport, loadView, saveView, memoryStorage } from '../js/store.js';
 
 const mkRun = (name, origin = 'mine') => ({
   ...blankRun(name), origin
@@ -112,6 +112,26 @@ test('匯入壞資料時 throw 中文訊息', () => {
   try { parseImport('不是備份內容'); } catch (e) { threw = e.message; }
   ok(threw, '應該要 throw');
   ok(threw.includes('格式'), `訊息應提到格式，實得：${threw}`);
+});
+
+test('看圖偏好存得起來也讀得回來', () => {
+  const s = memoryStorage();
+  eq(loadView(s).hideBuiltin, false, '沒存過就是預設顯示');
+  saveView(s, { hideBuiltin: true });
+  eq(loadView(s).hideBuiltin, true);
+  saveView(s, { hideBuiltin: false });
+  eq(loadView(s).hideBuiltin, false);
+});
+
+test('看圖偏好壞掉時退回預設，不牽連紀錄', () => {
+  const s = memoryStorage();
+  s.setItem(VIEW_KEY, '{壞掉的');
+  eq(loadView(s).hideBuiltin, false);
+});
+
+test('看圖偏好存不進去也不該 throw', () => {
+  const s = { getItem: () => null, setItem: () => { throw new Error('滿了'); }, removeItem: () => {} };
+  saveView(s, { hideBuiltin: true });   // 不 throw 就算過
 });
 
 test('validate 擋掉 id 不是字串的趟', () => {
