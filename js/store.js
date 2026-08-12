@@ -86,11 +86,11 @@ export function save(storage, runs) {
     storage.setItem(KEY, JSON.stringify({ v: SCHEMA, runs }));
     return { ok: true, error: null };
   } catch (e) {
-    return { ok: false, error: `存不進去（${e.message}）。建議先匯出備份。` };
+    return { ok: false, error: `存不進去（${e.message}）。先到最下面的「進階：備份與還原」複製一份備份留著。` };
   }
 }
 
-/** 只匯出自己的趟，不轉手散播別人的資料 */
+/** 備份只含自己輸入的趟，內建基準線是程式碼的一部分，不必存 */
 export function exportText(runs) {
   return JSON.stringify(
     { v: SCHEMA, runs: runs.filter(r => r.origin === 'mine') },

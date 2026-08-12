@@ -88,7 +88,7 @@ function render() {
  *
  * 回傳 store.save 的結果 { ok, error }，讓呼叫端（view-entry / view-manage）
  * 知道存檔到底成不成功 —— 失敗時使用者輸入的表單或草稿不該被清掉，
- * 不然橫幅叫他去匯出備份時，備份的東西已經被清空的表單/草稿帶走了。
+ * 不然橫幅叫他去複製備份時，要備份的東西已經被清空的表單/草稿帶走了。
  */
 export function mutate(fn) {
   const mine = state.runs.filter(r => r.origin !== 'builtin');
