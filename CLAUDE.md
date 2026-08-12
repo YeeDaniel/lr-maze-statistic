@@ -75,5 +75,7 @@ node 原生執行，零依賴。純函式模組（`decode` / `stats` / `store` �
 
 ## 現況
 
-- 已在 `feat/local-tool` 分支完成十個功能任務，`node tests/run.mjs` 76 通過 0 失敗
-- 尚未部署：還沒推上 GitHub、還沒開 Pages
+- 功能都在 `main`，`node tests/run.mjs` 84 通過 0 失敗
+- 已部署：GitHub Pages 指 `main` root，網址 https://yeedaniel.github.io/lr-maze-statistic/
+- 本機 `main` 目前領先 `origin/main` 9 個 commit（拿掉共享、輸入放第一位那批），還沒 push，
+  所以線上跑的還是舊版
